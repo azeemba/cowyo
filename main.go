@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -94,6 +95,34 @@ Options:`)
 	r.GET("/:title/*option", everythingElse)
 	r.DELETE("/listitem", deleteListItem)
 	r.DELETE("/deletepage", deletePage)
+	r.POST("/start", func(c *gin.Context) {
+		user := strings.TrimSpace(strings.ToLower(c.PostForm("user")))
+		currentProject := strings.TrimSpace(strings.ToLower(c.PostForm("currentProject")))
+		tagString := strings.TrimSpace(strings.ToLower(c.PostForm("tagString")))
+		startProject(user, currentProject, tagString)
+		c.Redirect(302, "/"+user+"/projects")
+	})
+	r.POST("/stop", func(c *gin.Context) {
+		user := strings.TrimSpace(strings.ToLower(c.PostForm("user")))
+		stopProject(user)
+		c.Redirect(302, "/"+user+"/projects")
+	})
+	r.POST("/add", func(c *gin.Context) {
+		itemName := strings.TrimSpace(strings.ToLower(c.PostForm("itemName")))
+		user := strings.TrimSpace(strings.ToLower(c.PostForm("user")))
+		itemType := strings.TrimSpace(strings.ToLower(c.PostForm("itemType")))
+		fmt.Println(user, itemName, itemType)
+		addItem(user, itemName, itemType)
+		c.Redirect(302, "/"+user+"/projects")
+	})
+	r.POST("/delete", func(c *gin.Context) {
+		itemName := strings.TrimSpace(strings.ToLower(c.PostForm("itemName")))
+		user := strings.TrimSpace(strings.ToLower(c.PostForm("user")))
+		itemType := strings.TrimSpace(strings.ToLower(c.PostForm("itemType")))
+		fmt.Println(user, itemName, itemType)
+		deleteItem(user, itemName, itemType)
+		c.Redirect(302, "/"+user+"/projects")
+	})
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
 		RuntimeArgs.Socket = "wss"
 		fmt.Println("--------------------------")

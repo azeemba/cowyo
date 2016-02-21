@@ -83,6 +83,17 @@ func everythingElse(c *gin.Context) {
 		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()))
 	} else if option == "/list" {
 		renderList(c, title)
+	} else if option == "/projects" {
+		d := getStatus(title)
+		fmt.Println(d)
+		c.HTML(http.StatusOK, "projects.tmpl", gin.H{
+			"User":          d.User,
+			"StatusMessage": "Currently: " + d.Project + " [" + strings.Join(d.Tags, ",") + "] (" + d.DateTime.String() + ")",
+			"ProjectString": d.Project,
+			"TagString":     template.JS(strings.Join(d.AllTags, "','")),
+			"Projects":      d.AllProjects,
+			"Tags":          d.AllTags,
+		})
 	} else if title == "static" {
 		serveStaticFile(c, option)
 	} else {
