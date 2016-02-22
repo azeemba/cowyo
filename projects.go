@@ -19,6 +19,114 @@ type Watson struct {
 	AllProjects []string
 }
 
+func addToTable(s string, currentDay string, projectBreakdown map[string]time.Duration, projectTagBreakdown map[string]map[string]time.Duration) string {
+	for k, v := range projectBreakdown {
+		s = s + "| " + currentDay
+		s = s + "|" + k + "(" + v.String() + ") | "
+		if _, ok := projectTagBreakdown[k]; ok {
+			for k2, v2 := range projectTagBreakdown[k] {
+				s = s + k2 + "(" + v2.String() + ")  "
+			}
+		}
+		s = s + "\n"
+		currentDay = ""
+	}
+	return s
+}
+
+func getReport(user string) string {
+	db, err := bolt.Open("projects.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	markdownTable := `# Projects Report
+
+| Day | Activity | Tags
+| ----------------- | -------------- | -------------
+`
+	const longForm = "01/02/06"
+
+	currentDay := ""
+	projectBreakdown := make(map[string]time.Duration)
+	projectTagBreakdown := make(map[string]map[string]time.Duration)
+	currentProject := ""
+	currentTags := []string{}
+	startTime := time.Now()
+
+	db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte(user))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			t1, e := time.Parse(time.RFC3339, string(k))
+			if e == nil {
+				// if its a different day, then reset everything
+				if t1.Format(longForm) != currentDay {
+					markdownTable = addToTable(markdownTable, currentDay, projectBreakdown, projectTagBreakdown)
+					currentDay = t1.Format(longForm)
+					projectBreakdown = make(map[string]time.Duration)
+					projectTagBreakdown = make(map[string]map[string]time.Duration)
+				}
+
+				if string(v) == ">>stop<<" { // if we have a stop
+					if currentProject != "" && t1.Sub(startTime).Minutes() > 1 {
+						if val, ok := projectBreakdown[currentProject]; ok {
+							projectBreakdown[currentProject] = val + t1.Sub(startTime)
+						} else {
+							projectBreakdown[currentProject] = t1.Sub(startTime)
+							projectTagBreakdown[currentProject] = make(map[string]time.Duration)
+						}
+						for _, tag := range currentTags {
+							if len(tag) > 2 {
+								if val, ok := projectTagBreakdown[currentProject][tag]; ok {
+									projectTagBreakdown[currentProject][tag] = val + t1.Sub(startTime)
+								} else {
+									projectTagBreakdown[currentProject][tag] = t1.Sub(startTime)
+								}
+							}
+						}
+					}
+					currentProject = ""
+				} else { // if we encounter another project
+					vals := strings.Split(string(v), ",")
+					newProject := vals[0]
+					if currentProject != "" && newProject != currentProject && t1.Sub(startTime).Minutes() > 1 {
+						if val, ok := projectBreakdown[currentProject]; ok {
+							projectBreakdown[currentProject] = val + t1.Sub(startTime)
+						} else {
+							projectBreakdown[currentProject] = t1.Sub(startTime)
+							projectTagBreakdown[currentProject] = make(map[string]time.Duration)
+						}
+						for _, tag := range currentTags {
+							if len(tag) > 2 {
+								if val, ok := projectTagBreakdown[currentProject][tag]; ok {
+									projectTagBreakdown[currentProject][tag] = val + t1.Sub(startTime)
+								} else {
+									projectTagBreakdown[currentProject][tag] = t1.Sub(startTime)
+								}
+							}
+						}
+					}
+					currentProject = newProject
+					startTime = t1
+					if len(vals) > 1 {
+						currentTags = vals[1:len(vals)]
+					}
+				}
+			} else {
+				fmt.Println(e)
+			}
+		}
+		markdownTable = addToTable(markdownTable, currentDay, projectBreakdown, projectTagBreakdown)
+		// fmt.Println(markdownTable)
+		return nil
+	})
+	return markdownTable
+}
+
 func getStatus(user string) Watson {
 	tags := getItem(user, "tags")
 	projects := getItem(user, "projects")

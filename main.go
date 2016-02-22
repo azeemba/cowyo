@@ -83,6 +83,8 @@ Options:`)
 	p := WikiData{"about", "", []string{}, []string{}}
 	p.save(string(aboutFile))
 
+	getReport("zack")
+
 	// var q WikiData
 	// q.load("about")
 	// fmt.Println(getImportantVersions(q))

@@ -78,22 +78,26 @@ func everythingElse(c *gin.Context) {
 			versionNum = -1
 		}
 		currentText, versions, _, totalTime := getCurrentText(title, versionNum)
-		renderMarkdown(c, currentText, title, versions, "", totalTime)
+		renderMarkdown(c, currentText, title, versions, "", totalTime, "view.tmpl")
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()))
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), "view.tmpl")
 	} else if option == "/list" {
 		renderList(c, title)
-	} else if option == "/projects" {
-		p := getStatus(title)
-		fmt.Println(p)
-		working := true
-		if p.Project == "None" {
-			working = false
+	} else if strings.Contains(option, "/projects") {
+		if strings.Contains(option, "/report") {
+			renderMarkdown(c, getReport(title), title, nil, "", time.Now().Sub(time.Now()), "projectreport.tmpl")
+		} else {
+			p := getStatus(title)
+			fmt.Println(p)
+			working := true
+			if p.Project == "None" {
+				working = false
+			}
+			c.HTML(http.StatusOK, "projects.tmpl", gin.H{
+				"P":       p,
+				"Working": working,
+			})
 		}
-		c.HTML(http.StatusOK, "projects.tmpl", gin.H{
-			"P":       p,
-			"Working": working,
-		})
 	} else if title == "static" {
 		serveStaticFile(c, option)
 	} else {
@@ -110,7 +114,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, templateName string) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -118,11 +122,13 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
+	pClean.AllowElements("span")
 	pClean.AllowAttrs("alt").OnElements("img")
 	pClean.AllowAttrs("src").OnElements("img")
 	pClean.AllowAttrs("class").OnElements("a")
 	pClean.AllowAttrs("href").OnElements("a")
 	pClean.AllowAttrs("id").OnElements("a")
+	pClean.AllowAttrs("style").OnElements("span")
 	pClean.AllowDataURIImages()
 	html := pClean.SanitizeBytes(unsafe)
 	html2 := string(html)
@@ -141,7 +147,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	html2 = strings.Replace(html2, "&amp35;", "&#35;", -1)
 
 	if AdminKey == "" {
-		c.HTML(http.StatusOK, "view.tmpl", gin.H{
+		c.HTML(http.StatusOK, templateName, gin.H{
 			"Title":     title,
 			"WikiName":  RuntimeArgs.WikiName,
 			"Body":      template.HTML([]byte(html2)),
@@ -149,7 +155,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 			"Versions":  versions,
 		})
 	} else {
-		c.HTML(http.StatusOK, "view.tmpl", gin.H{
+		c.HTML(http.StatusOK, templateName, gin.H{
 			"Title":     title,
 			"WikiName":  RuntimeArgs.WikiName,
 			"Body":      template.HTML([]byte(html2)),
