@@ -176,7 +176,7 @@
 
   <script>
     var current_project = "{{ .ProjectString }}";
-    var tags = ['{{ .TagString  }}'];
+    var tags = [{{ range .Tags }}'{{.}}',{{end }}''];
     var tag_string = "";
 
     $(document).ready(function() {

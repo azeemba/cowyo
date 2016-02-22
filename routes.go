@@ -90,7 +90,7 @@ func everythingElse(c *gin.Context) {
 			"User":          d.User,
 			"StatusMessage": "Currently: " + d.Project + " [" + strings.Join(d.Tags, ",") + "] (" + d.DateTime.String() + ")",
 			"ProjectString": d.Project,
-			"TagString":     template.JS(strings.Join(d.AllTags, "','")),
+			"TagString":     d.AllTags,
 			"Projects":      d.AllProjects,
 			"Tags":          d.AllTags,
 		})
