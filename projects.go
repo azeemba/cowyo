@@ -33,14 +33,10 @@ func addToTable(s string, currentDay string, projectBreakdown map[string]int, pr
 	for _, v := range a {
 		for _, k := range n[v] {
 			s = s + "| " + currentDay
-			timeString := (time.Duration(v) * time.Minute).String()
-			timeString = timeString[0 : len(timeString)-2]
-			s = s + "|" + k + "(" + timeString + ") | "
+			s = s + "|" + k + "(" + (time.Duration(v) * time.Second).String() + ") | "
 			if _, ok := projectTagBreakdown[k]; ok {
 				for k2, v2 := range projectTagBreakdown[k] {
-					timeString2 := (time.Duration(v2) * time.Minute).String()
-					timeString2 = timeString[0 : len(timeString2)-2]
-					s = s + k2 + "(" + timeString2 + ")  "
+					s = s + k2 + "(" + (time.Duration(v2) * time.Second).String() + ")  "
 				}
 			}
 			s = s + "\n"
@@ -88,19 +84,19 @@ func getReport(user string) string {
 				}
 
 				if string(v) == ">>stop<<" { // if we have a stop
-					if currentProject != "" && t1.Sub(startTime).Minutes() > 1 {
+					if currentProject != "" && t1.Sub(startTime).Seconds() > 1 {
 						if val, ok := projectBreakdown[currentProject]; ok {
-							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Minutes())
+							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Seconds())
 						} else {
-							projectBreakdown[currentProject] = int(t1.Sub(startTime).Minutes())
+							projectBreakdown[currentProject] = int(t1.Sub(startTime).Seconds())
 							projectTagBreakdown[currentProject] = make(map[string]int)
 						}
 						for _, tag := range currentTags {
 							if len(tag) > 2 {
 								if val, ok := projectTagBreakdown[currentProject][tag]; ok {
-									projectTagBreakdown[currentProject][tag] = val + int(t1.Sub(startTime).Minutes())
+									projectTagBreakdown[currentProject][tag] = val + int(t1.Sub(startTime).Seconds())
 								} else {
-									projectTagBreakdown[currentProject][tag] = int(t1.Sub(startTime).Minutes())
+									projectTagBreakdown[currentProject][tag] = int(t1.Sub(startTime).Seconds())
 								}
 							}
 						}
@@ -109,19 +105,19 @@ func getReport(user string) string {
 				} else { // if we encounter another project
 					vals := strings.Split(string(v), ",")
 					newProject := vals[0]
-					if currentProject != "" && newProject != currentProject && t1.Sub(startTime).Minutes() > 1 {
+					if currentProject != "" && newProject != currentProject && t1.Sub(startTime).Seconds() > 1 {
 						if val, ok := projectBreakdown[currentProject]; ok {
-							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Minutes())
+							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Seconds())
 						} else {
-							projectBreakdown[currentProject] = int(t1.Sub(startTime).Minutes())
+							projectBreakdown[currentProject] = int(t1.Sub(startTime).Seconds())
 							projectTagBreakdown[currentProject] = make(map[string]int)
 						}
 						for _, tag := range currentTags {
 							if len(tag) > 2 {
 								if val, ok := projectTagBreakdown[currentProject][tag]; ok {
-									projectTagBreakdown[currentProject][tag] = val + int(t1.Sub(startTime).Minutes())
+									projectTagBreakdown[currentProject][tag] = val + int(t1.Sub(startTime).Seconds())
 								} else {
-									projectTagBreakdown[currentProject][tag] = int(t1.Sub(startTime).Minutes())
+									projectTagBreakdown[currentProject][tag] = int(t1.Sub(startTime).Seconds())
 								}
 							}
 						}
