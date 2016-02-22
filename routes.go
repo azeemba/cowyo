@@ -84,15 +84,15 @@ func everythingElse(c *gin.Context) {
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if option == "/projects" {
-		d := getStatus(title)
-		fmt.Println(d)
+		p := getStatus(title)
+		fmt.Println(p)
+		working := true
+		if p.Project == "None" {
+			working = false
+		}
 		c.HTML(http.StatusOK, "projects.tmpl", gin.H{
-			"User":          d.User,
-			"StatusMessage": "Currently: " + d.Project + " [" + strings.Join(d.Tags, ",") + "] (" + d.DateTime.String() + ")",
-			"ProjectString": d.Project,
-			"ProjectTags":   d.Tags,
-			"Projects":      d.AllProjects,
-			"Tags":          d.AllTags,
+			"P":       p,
+			"Working": working,
 		})
 	} else if title == "static" {
 		serveStaticFile(c, option)

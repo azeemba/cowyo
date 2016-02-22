@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,7 +14,7 @@ type Watson struct {
 	User        string
 	Project     string
 	Tags        []string
-	DateTime    time.Duration
+	Duration    string
 	AllTags     []string
 	AllProjects []string
 }
@@ -54,7 +55,19 @@ func getStatus(user string) Watson {
 		}
 		return nil
 	})
-	return Watson{user, currentProject, currentTags, currentTime, tags, projects}
+
+	duration := "a minute ago"
+	if currentTime.Minutes() < 2 {
+	} else if currentTime.Minutes() < 60 {
+		mins := strconv.Itoa(int(currentTime.Minutes()))
+		duration = mins + " minutes ago"
+	} else {
+		mins := strconv.Itoa(int(currentTime.Minutes()))
+		hrs := strconv.Itoa(int(currentTime.Hours()))
+		duration = hrs + "hr " + mins + "min ago"
+	}
+
+	return Watson{user, currentProject, currentTags, duration, tags, projects}
 }
 
 func addItem(user string, name string, itemType string) {
