@@ -83,7 +83,7 @@ Options:`)
 	p := WikiData{"about", "", []string{}, []string{}}
 	p.save(string(aboutFile))
 
-	getReport("zack")
+	fmt.Println(getReport("zack"))
 
 	// var q WikiData
 	// q.load("about")
