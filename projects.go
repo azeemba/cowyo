@@ -84,7 +84,7 @@ func getReport(user string) string {
 				}
 
 				if string(v) == ">>stop<<" { // if we have a stop
-					if currentProject != "" && t1.Sub(startTime).Seconds() > 1 {
+					if currentProject != "" && t1.Sub(startTime).Minutes() > 1 {
 						if val, ok := projectBreakdown[currentProject]; ok {
 							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Seconds())
 						} else {
@@ -105,7 +105,7 @@ func getReport(user string) string {
 				} else { // if we encounter another project
 					vals := strings.Split(string(v), ",")
 					newProject := vals[0]
-					if currentProject != "" && newProject != currentProject && t1.Sub(startTime).Seconds() > 1 {
+					if currentProject != "" && newProject != currentProject && t1.Sub(startTime).Minutes() > 1 {
 						if val, ok := projectBreakdown[currentProject]; ok {
 							projectBreakdown[currentProject] = val + int(t1.Sub(startTime).Seconds())
 						} else {
