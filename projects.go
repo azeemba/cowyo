@@ -33,10 +33,14 @@ func addToTable(s string, currentDay string, projectBreakdown map[string]int, pr
 	for _, v := range a {
 		for _, k := range n[v] {
 			s = s + "| " + currentDay
-			s = s + "|" + k + "(" + time.Duration(v*1000000000).String() + ") | "
+			timeString := (time.Duration(v) * time.Minute).String()
+			timeString = timeString[0 : len(timeString)-2]
+			s = s + "|" + k + "(" + timeString + ") | "
 			if _, ok := projectTagBreakdown[k]; ok {
 				for k2, v2 := range projectTagBreakdown[k] {
-					s = s + k2 + "(" + time.Duration(v2*1000000000).String() + ")  "
+					timeString2 := (time.Duration(v2) * time.Minute).String()
+					timeString2 = timeString[0 : len(timeString2)-2]
+					s = s + k2 + "(" + timeString2 + ")  "
 				}
 			}
 			s = s + "\n"
