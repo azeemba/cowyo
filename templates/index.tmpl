@@ -164,7 +164,24 @@
   </form>
   <script>
     $(document).ready(function() {
+      var text = "{{ .CurrentText }}";
+      if (!text) {
+        return;
+      }
+      if (!sjcl) {
+        throw "Can't encrypt";
+      }
+      var pass = localStorage.getItem('clientkey');
+      if (pass === null) {
+        console.log("No password available");
+        return;
+      }
+
+      var stringData = sjcl.decrypt(pass, text);
+      $("#emit_data").text(stringData);
+
       $("#emit_data").autoGrow();
+
     });
 
     $(document).keydown(function(e) {
