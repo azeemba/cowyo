@@ -8,20 +8,20 @@ $(document).ready(function() {
   var doneTypingInterval = 500; //time in ms, 5 second for example
   var pollToGetNewestCopyInterval = 30000;
   //on keyup, start the countdown
-  $('#emit').keyup(function() {
-    clearTimeout(typingTimer);
-    clearInterval(updateInterval);
-    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
-    typingTimer = setTimeout(doneTyping, doneTypingInterval);
-  });
-
-  //on keydown, clear the countdown
-  $('#emit').keydown(function() {
-    clearTimeout(typingTimer);
-    clearInterval(updateInterval);
-    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
-    document.title = '✗ ' + title_name;
-  });
+//  $('#emit').keyup(function() {
+//    clearTimeout(typingTimer);
+//    clearInterval(updateInterval);
+//    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
+//    typingTimer = setTimeout(doneTyping, doneTypingInterval);
+//  });
+//
+//  //on keydown, clear the countdown
+//  $('#emit').keydown(function() {
+//    clearTimeout(typingTimer);
+//    clearInterval(updateInterval);
+//    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
+//    document.title = '✗ ' + title_name;
+//  });
 
   //user is "finished typing," do something
   function doneTyping() {
@@ -30,7 +30,6 @@ $(document).ready(function() {
     uhohTimer = setTimeout(uhoh, 30000);
     $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-open");
     console.log("Done typing")
-    updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "✓ " + title_name;
     if (currentText().indexOf("self-destruct\n") > -1 || currentText().indexOf("\nself-destruct") > -1) {
       if (selfDestruct == false) {
@@ -84,10 +83,11 @@ $(document).ready(function() {
     console.log(data)
   }
 
-  c.onopen = function(){
-    // updateText();
-    updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
-  }
+  // We don't need this. We don't expect simultaneous writing.
+  //c.onopen = function(){
+  //  // updateText();
+  //  updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
+  //}
 
 
   $('.postselfdestruct').click(function(event) {
