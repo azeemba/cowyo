@@ -39,6 +39,8 @@ var RuntimeArgs struct {
 	DumpDataset      string
 	RestoreDataset   string
 	Debug            bool
+        UserName         string
+        Password         string
 }
 var VersionNum string
 
@@ -53,6 +55,8 @@ func main() {
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
 	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin privaleges")
+	flag.StringVar(&RuntimeArgs.UserName, "u", "", "http username")
+	flag.StringVar(&RuntimeArgs.Password, "pass", "", "http password")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of SSL certificate")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of SSL key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
@@ -138,15 +142,19 @@ Options:`)
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
 	store := sessions.NewCookieStore([]byte("secret"))
 	r.Use(sessions.Sessions("mysession", store))
-	r.GET("/", newNote)
-	r.HEAD("/", func(c *gin.Context) { c.Status(200) })
-	r.GET("/:title", editNote)
-	r.PUT("/:title", putFile)
-	r.PUT("/", putFile)
-	r.GET("/:title/*option", everythingElse)
-	r.POST("/:title/*option", encryptionRoute)
-	r.DELETE("/listitem", deleteListItem)
-	r.DELETE("/deletepage", deletePage)
+	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
+            RuntimeArgs.UserName: RuntimeArgs.Password,
+	}))
+
+	authorized.GET("/", newNote)
+	authorized.HEAD("/", func(c *gin.Context) { c.Status(200) })
+	authorized.GET("/:title", editNote)
+	authorized.PUT("/:title", putFile)
+	authorized.PUT("/", putFile)
+	authorized.GET("/:title/*option", everythingElse)
+	authorized.POST("/:title/*option", encryptionRoute)
+	authorized.DELETE("/listitem", deleteListItem)
+	authorized.DELETE("/deletepage", deletePage)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
 		RuntimeArgs.Socket = "wss"
 		fmt.Println("--------------------------")
