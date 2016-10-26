@@ -597,7 +597,7 @@ func deletePage(c *gin.Context) {
 func listEverything() string {
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
-	everything := `| Title | Current size    | Changes  | Total Size |  |
+	everything := `| Title | Time | Changes  | Size |  |
 | --------- |-------------| -----| ------------- | ------------- |
 `
 	db.View(func(tx *bolt.Tx) error {
@@ -608,10 +608,10 @@ func listEverything() string {
 			var p WikiData
 			p.load(string(k))
 			if len(p.CurrentText) > 1 {
-				contentSize := strconv.Itoa(len(p.CurrentText))
+				timestamp := p.Timestamps[0] 
 				numChanges := strconv.Itoa(len(p.Diffs))
 				totalSize := strconv.Itoa(len(v))
-				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + contentSize + " | " + numChanges + " | " + totalSize + ` | <a class="deleteable" id="` + p.Title + `">Delete</a> | ` + "\n"
+				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + timestamp + " | " + numChanges + " | " + totalSize + ` | <a class="deleteable" id="` + p.Title + `">Delete</a> | ` + "\n"
 			}
 		}
 		return nil
