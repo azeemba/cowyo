@@ -597,8 +597,8 @@ func deletePage(c *gin.Context) {
 func listEverything() string {
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
-	everything := `| Title | Time | Changes  | Size |  |
-| --------- |-------------| -----| ------------- | ------------- |
+	everything := `| Title | Time | Size |  |
+| --------- |-------------| ------------- | ------------- |
 `
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
@@ -609,9 +609,8 @@ func listEverything() string {
 			p.load(string(k))
 			if len(p.CurrentText) > 1 {
 				timestamp := p.Timestamps[0] 
-				numChanges := strconv.Itoa(len(p.Diffs))
 				totalSize := strconv.Itoa(len(v))
-				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + timestamp + " | " + numChanges + " | " + totalSize + ` | <a class="deleteable" id="` + p.Title + `">Delete</a> | ` + "\n"
+				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + timestamp + " | " + totalSize + ` | <a class="deleteable" id="` + p.Title + `">Delete</a> | ` + "\n"
 			}
 		}
 		return nil
